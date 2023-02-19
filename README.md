@@ -1,13 +1,13 @@
-# Sample Hardhat Project
+# Coinsamba Games
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+# Deploy
 
-Try running some of the following tasks:
+```
+npx hardhat run ./scripts/deployRussianRoulette.ts --network dashboard
+```
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+# Verify
+
+```
+npx hardhat verify DEPLOYED_CONTRACT_ADDRESS --network dashboard
 ```
