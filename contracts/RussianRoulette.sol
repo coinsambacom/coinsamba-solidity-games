@@ -11,10 +11,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract RussianRoulette is Ownable {
     using SafeMath for uint256;
 
-    uint256 public entryPrice = 0.1 ether;
+    struct Room {
+        bool finished;
+        uint256 entryPrice;
+        address[] players;
+        uint8 deadSeat;
+    }
 
-    uint256 public room;
-    address[] private players;
+    uint256 public nextEntryPrice = 0.1 ether;
+
+    mapping(uint256 => Room) rooms;
+    uint256 public currentRoom;
 
     event PlayerJoined(address indexed player, uint256 indexed room);
     event Victim(address indexed victim, uint256 indexed room);
@@ -22,70 +29,103 @@ contract RussianRoulette is Ownable {
     /// @notice Enter the current room and execute if the player is the sixth
     /// @param referrer The index of the player who was eliminated
     function enter(address referrer) external payable {
-        require(players.length < 6);
-        require(msg.value == entryPrice);
+        if (rooms[currentRoom].entryPrice == 0) {
+            rooms[currentRoom].entryPrice = nextEntryPrice;
+        }
+
+        require(rooms[currentRoom].players.length < 6);
+        require(msg.value == nextEntryPrice);
 
         // referrer will receive 1 percent of entry price
-        uint256 referrerCut = entryPrice.div(100);
+        uint256 referrerCut = nextEntryPrice.div(100);
         Address.sendValue(payable(referrer), referrerCut);
 
-        players.push(msg.sender);
+        rooms[currentRoom].players.push(msg.sender);
 
-        emit PlayerJoined(msg.sender, room);
+        emit PlayerJoined(msg.sender, currentRoom);
 
-        if (players.length == 6) {
+        if (rooms[currentRoom].players.length == 6) {
             executeRoom();
         }
     }
 
     /// @notice Execute the current room
     function executeRoom() private {
-        require(players.length == 6);
+        require(rooms[currentRoom].players.length == 6);
 
-        uint256 victimSeat = random();
+        uint8 victimSeat = random();
 
         distributeFunds(victimSeat);
 
-        room = room + 1;
+        rooms[currentRoom].deadSeat = victimSeat;
 
-        players = new address[](0);
+        rooms[currentRoom].finished = true;
+
+        currentRoom = currentRoom + 1;
     }
 
     /// @notice Make payment to winners
     /// @param victimSeat_ The index of the player who was eliminated
-    function distributeFunds(uint256 victimSeat_) private {
+    function distributeFunds(uint8 victimSeat_) private {
         uint256 balanceToDistribute = address(this).balance.div(5);
 
-        address victim = players[victimSeat_];
+        address victim = rooms[currentRoom].players[victimSeat_];
 
-        for (uint i = 0; i < 6; i++) {
+        for (uint8 i = 0; i < 6; i++) {
             if (i != victimSeat_) {
-                Address.sendValue(payable(players[i]), balanceToDistribute);
+                Address.sendValue(
+                    payable(rooms[currentRoom].players[i]),
+                    balanceToDistribute
+                );
             }
         }
 
-        emit Victim(victim, room);
+        emit Victim(victim, currentRoom);
     }
 
     /// @notice Returns a pseudorandom number that is equivalent to a player in the current room.
     /// @return Player index
-    function random() private view returns (uint256) {
+    function random() private view returns (uint8) {
         return
-            uint256(
-                keccak256(
-                    abi.encodePacked(
-                        msg.sender,
-                        block.difficulty,
-                        block.timestamp,
-                        room
+            uint8(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            msg.sender,
+                            block.difficulty,
+                            block.timestamp,
+                            currentRoom
+                        )
                     )
-                )
-            ) % 6;
+                ) % 6
+            );
     }
 
     /// @notice Sets the new price to join the game
-    /// @param entryPrice_ The new entry price
-    function setEntryPrice(uint256 entryPrice_) external onlyOwner {
-        entryPrice = entryPrice_;
+    /// @param nextEntryPrice_ The new entry price
+    function setNextEntryPrice(uint256 nextEntryPrice_) external onlyOwner {
+        nextEntryPrice = nextEntryPrice_;
+    }
+
+    /// @notice Return the current room details
+    /// @param room The room that you need
+    function getRoom(uint256 room)
+        external
+        view
+        returns (
+            bool,
+            uint256,
+            address[] memory,
+            uint8
+        )
+    {
+        Room memory _room = rooms[room];
+
+        return (
+            _room.finished,
+            _room.entryPrice == 0 ? nextEntryPrice : _room.entryPrice,
+            _room.players,
+            _room.deadSeat
+        );
     }
 }

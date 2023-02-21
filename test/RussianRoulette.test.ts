@@ -22,11 +22,11 @@ describe("RussianRoulette", function () {
 
       const newEntryPrice = ethers.BigNumber.from(ethers.constants.WeiPerEther);
 
-      const entryPriceBefore = await RussianRoulette.entryPrice();
+      const entryPriceBefore = await RussianRoulette.nextEntryPrice();
 
-      await RussianRoulette.setEntryPrice(newEntryPrice);
+      await RussianRoulette.setNextEntryPrice(newEntryPrice);
 
-      const entryPriceAfter = await RussianRoulette.entryPrice();
+      const entryPriceAfter = await RussianRoulette.nextEntryPrice();
 
       expect(entryPriceBefore.eq(entryPriceAfter)).to.equal(false);
 
@@ -38,7 +38,12 @@ describe("RussianRoulette", function () {
     it("Should work perfectly", async function () {
       const { RussianRoulette, accounts } = await loadFixture(deployFixture);
 
-      const entryPrice = await RussianRoulette.entryPrice();
+      const currentRoomIndex = await RussianRoulette.currentRoom();
+      const currentRoomDetails = await RussianRoulette.getRoom(
+        currentRoomIndex
+      );
+
+      const entryPrice = currentRoomDetails[1];
 
       const referrer = accounts[10];
 
