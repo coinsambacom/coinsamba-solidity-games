@@ -16,6 +16,7 @@ contract RussianRoulette is Ownable {
         uint256 entryPrice;
         address[] players;
         uint8 deadSeat;
+        uint256 blockNumber;
     }
 
     uint256 public nextEntryPrice = 0.1 ether;
@@ -29,7 +30,8 @@ contract RussianRoulette is Ownable {
     /// @notice Enter the current room and execute if the player is the sixth
     /// @param referrer The index of the player who was eliminated
     function enter(address referrer) external payable {
-        if (rooms[currentRoom].entryPrice == 0) {
+        if (rooms[currentRoom].blockNumber == 0) {
+            rooms[currentRoom].blockNumber = block.number;
             rooms[currentRoom].entryPrice = nextEntryPrice;
         }
 
@@ -109,23 +111,17 @@ contract RussianRoulette is Ownable {
 
     /// @notice Return the current room details
     /// @param room The room that you need
-    function getRoom(uint256 room)
-        external
-        view
-        returns (
-            bool,
-            uint256,
-            address[] memory,
-            uint8
-        )
-    {
+    function getRoom(
+        uint256 room
+    ) external view returns (bool, uint256, address[] memory, uint8, uint256) {
         Room memory _room = rooms[room];
 
         return (
             _room.finished,
             _room.entryPrice == 0 ? nextEntryPrice : _room.entryPrice,
             _room.players,
-            _room.deadSeat
+            _room.deadSeat,
+            _room.blockNumber == 0 ? block.number : _room.blockNumber
         );
     }
 }
