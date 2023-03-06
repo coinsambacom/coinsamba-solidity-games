@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "test": "npx hardhat test",
-    "dashboard": "npx truffle dashboard"
+    "dashboard": "npx truffle dashboard",
+    "deployRoulette": "npx hardhat run ./scripts/deployRussianRoulette.ts --network dashboard"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
