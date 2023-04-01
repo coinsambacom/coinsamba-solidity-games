@@ -9,7 +9,7 @@ npx hardhat run ./scripts/deployRussianRoulette.ts --network dashboard
 # Verify
 
 ```
-npx hardhat verify DEPLOYED_CONTRACT_ADDRESS --network dashboard
+npx hardhat verify DEPLOYED_CONTRACT_ADDRESS --network dashboard --constructor-args arguments/russianRoulette.js
 ```
 
 # Addresses
