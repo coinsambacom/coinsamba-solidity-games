@@ -19,13 +19,17 @@ contract RussianRoulette is Ownable {
         uint256 blockNumber;
     }
 
-    uint256 public nextEntryPrice = 0.1 ether;
+    uint256 public nextEntryPrice;
 
     mapping(uint256 => Room) rooms;
     uint256 public currentRoom;
 
     event PlayerJoined(address indexed player, uint256 indexed room);
-    event Victim(address indexed victim, uint256 indexed room);
+    event Victim(address indexed victim, uint8 deadSeat, uint256 indexed room);
+
+    constructor(uint256 nextEntryPrice_) {
+        nextEntryPrice = nextEntryPrice_;
+    }
 
     /// @notice Enter the current room and execute if the player is the sixth
     /// @param referrer The index of the player who was eliminated
@@ -82,7 +86,7 @@ contract RussianRoulette is Ownable {
             }
         }
 
-        emit Victim(victim, currentRoom);
+        emit Victim(victim, victimSeat_, currentRoom);
     }
 
     /// @notice Returns a pseudorandom number that is equivalent to a player in the current room.
@@ -111,9 +115,17 @@ contract RussianRoulette is Ownable {
 
     /// @notice Return the current room details
     /// @param room The room that you need
-    function getRoom(
-        uint256 room
-    ) external view returns (bool, uint256, address[] memory, uint8, uint256) {
+    function getRoom(uint256 room)
+        external
+        view
+        returns (
+            bool,
+            uint256,
+            address[] memory,
+            uint8,
+            uint256
+        )
+    {
         Room memory _room = rooms[room];
 
         return (

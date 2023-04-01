@@ -11,7 +11,7 @@ describe("RussianRoulette", function () {
     );
     const RussianRoulette = await RussianRouletteFactory.connect(
       accounts[10]
-    ).deploy();
+    ).deploy(ethers.constants.WeiPerEther.mul(5).div(1000)); // 0.005
 
     return { RussianRoulette, accounts };
   }

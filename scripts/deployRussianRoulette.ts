@@ -4,7 +4,10 @@ async function main() {
   const RussianRouletteFactory = await ethers.getContractFactory(
     "RussianRoulette"
   );
-  const RussianRoulette = await RussianRouletteFactory.deploy();
+
+  const RussianRoulette = await RussianRouletteFactory.deploy(
+    ethers.constants.WeiPerEther.mul(5).div(100) // 0.005
+  );
 
   await RussianRoulette.deployed();
 
